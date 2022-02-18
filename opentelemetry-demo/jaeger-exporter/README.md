@@ -1,0 +1,1 @@
+修改 settings.go 里面的 TracingAnalysisEndpoint 然后执行即可

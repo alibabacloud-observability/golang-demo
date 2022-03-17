@@ -17,9 +17,9 @@
 package main
 
 import (
-	"github.com/alibabacloud-observability/golang-demo/opentelemetry-demo/otlp-exporter/common"
 	"context"
-	"google.golang.org/grpc"
+	"github.com/alibabacloud-observability/golang-demo/opentelemetry-demo/otlp-exporter/common"
+	//"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"os"
@@ -29,7 +29,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	//"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -41,21 +42,27 @@ import (
 func initProvider() func() {
 	ctx := context.Background()
 
-	otelAgentAddr, xtraceToken, ok := common.ObtainXTraceInfo()
+	//otelAgentAddr, xtraceToken, ok := common.ObtainXTraceInfo()
+	//
+	//if !ok {
+	//	log.Fatalf("Cannot init OpenTelemetry, exit")
+	//	os.Exit(-1)
+	//}
 
-	if !ok {
-		log.Fatalf("Cannot init OpenTelemetry, exit")
-		os.Exit(-1)
-	}
+	//headers := map[string]string{"Authentication": xtraceToken}
+	//traceClient := otlptracegrpc.NewClient(
+	//	otlptracegrpc.WithInsecure(),
+	//	otlptracegrpc.WithEndpoint(otelAgentAddr),
+	//	otlptracegrpc.WithHeaders(headers), // 鉴权信息
+	//	otlptracegrpc.WithDialOption(grpc.WithBlock()))
 
-	headers := map[string]string{"Authentication": xtraceToken}
-	traceClient := otlptracegrpc.NewClient(
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint(otelAgentAddr),
-		otlptracegrpc.WithHeaders(headers), // 鉴权信息
-		otlptracegrpc.WithDialOption(grpc.WithBlock()))
-	log.Println("start to connect to server")
-	traceExp, err := otlptrace.New(ctx, traceClient)
+	traceClientHttp := otlptracehttp.NewClient(
+		otlptracehttp.WithEndpoint("127.0.0.1:8080"),
+		otlptracehttp.WithURLPath("/adapt_xxxxx/api/otlp/traces"),
+		otlptracehttp.WithInsecure())
+	//otlptracehttp.WithCompression(1))
+
+	traceExp, err := otlptrace.New(ctx, traceClientHttp)
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	res, err := resource.New(ctx,
@@ -108,7 +115,6 @@ func main() {
 	method, _ := baggage.NewMember("method", "repl")
 	client, _ := baggage.NewMember("client", "cli")
 	bag, _ := baggage.New(method, client)
-
 
 	defaultCtx := baggage.ContextWithBaggage(context.Background(), bag)
 	for {

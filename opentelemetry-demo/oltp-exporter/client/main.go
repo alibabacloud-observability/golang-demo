@@ -19,6 +19,9 @@ package main
 import (
 	"context"
 	"github.com/alibabacloud-observability/golang-demo/opentelemetry-demo/otlp-exporter/common"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"google.golang.org/grpc"
+
 	//"google.golang.org/grpc"
 	"log"
 	"net/http"
@@ -29,8 +32,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	//"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -42,27 +44,27 @@ import (
 func initProvider() func() {
 	ctx := context.Background()
 
-	//otelAgentAddr, xtraceToken, ok := common.ObtainXTraceInfo()
-	//
-	//if !ok {
-	//	log.Fatalf("Cannot init OpenTelemetry, exit")
-	//	os.Exit(-1)
-	//}
+	otelAgentAddr, xtraceToken, ok := common.ObtainXTraceInfo()
 
-	//headers := map[string]string{"Authentication": xtraceToken}
-	//traceClient := otlptracegrpc.NewClient(
-	//	otlptracegrpc.WithInsecure(),
-	//	otlptracegrpc.WithEndpoint(otelAgentAddr),
-	//	otlptracegrpc.WithHeaders(headers), // 鉴权信息
-	//	otlptracegrpc.WithDialOption(grpc.WithBlock()))
+	if !ok {
+		log.Fatalf("Cannot init OpenTelemetry, exit")
+		os.Exit(-1)
+	}
 
-	traceClientHttp := otlptracehttp.NewClient(
-		otlptracehttp.WithEndpoint("127.0.0.1:8080"),
-		otlptracehttp.WithURLPath("/adapt_xxxxx/api/otlp/traces"),
-		otlptracehttp.WithInsecure())
+	headers := map[string]string{"Authentication": xtraceToken}
+	traceClient := otlptracegrpc.NewClient(
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(otelAgentAddr),
+		otlptracegrpc.WithHeaders(headers), // 鉴权信息
+		otlptracegrpc.WithDialOption(grpc.WithBlock()))
+
+	//traceClientHttp := otlptracehttp.NewClient(
+	//	otlptracehttp.WithEndpoint("127.0.0.1:8080"),
+	//	otlptracehttp.WithURLPath("/adapt_xxxxx/api/otlp/traces"),
+	//	otlptracehttp.WithInsecure())
 	//otlptracehttp.WithCompression(1))
 
-	traceExp, err := otlptrace.New(ctx, traceClientHttp)
+	traceExp, err := otlptrace.New(ctx, traceClient)
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	res, err := resource.New(ctx,

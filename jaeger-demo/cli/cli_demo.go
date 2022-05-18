@@ -13,6 +13,7 @@ var tracer opentracing.Tracer = nil
 func child(pSpan opentracing.Span) {
 	span := tracer.StartSpan("child", opentracing.ChildOf(pSpan.Context()))
 	span.SetTag("type", "child")
+	span.LogKV("event", "error", "stack", "Runtime Exception: unable to find user id")
 	defer span.Finish()
 	log.Println("cli child start")
 	time.Sleep(2 * time.Second)

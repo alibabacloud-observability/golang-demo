@@ -16,9 +16,9 @@
 package main
 
 import (
-	"github.com/alibabacloud-observability/golang-demo/opentelemetry-demo/otlp-exporter/common"
 	"context"
 	"fmt"
+	"github.com/alibabacloud-observability/golang-demo/opentelemetry-demo/otlp-exporter/common"
 	"go.opentelemetry.io/otel/codes"
 	"log"
 	"math/rand"
@@ -88,6 +88,7 @@ func initProvider() func() {
 		resource.WithAttributes(
 			// the service name used to display traces in backends
 			semconv.ServiceNameKey.String(common.ServerServiceName),
+			semconv.HostNameKey.String(common.ClientServiceHostName),
 		),
 	)
 	handleErr(err, "failed to create resource")

@@ -31,6 +31,7 @@ import (
 
 const (
 	service     = "trace-demo"
+	hostname    = "hostname"
 	environment = "production"
 	id          = 1
 )
@@ -51,8 +52,8 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 		// Record information about this application in a Resource.
 		tracesdk.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(service),
-			semconv.HostNameKey.String("192.148.21.1"),
+			semconv.ServiceNameKey.String(service), // your-service-name
+			attribute.String("hostname", hostname), // your-host-name
 			attribute.String("environment", environment),
 			attribute.Int64("ID", id),
 		)),

@@ -52,19 +52,13 @@ func initProvider() func() {
 	}
 
 	headers := map[string]string{"Authentication": xtraceToken}
-	traceClient := otlptracegrpc.NewClient(
+	traceClientGrpc := otlptracegrpc.NewClient(
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint(otelAgentAddr),
 		otlptracegrpc.WithHeaders(headers), // 鉴权信息
 		otlptracegrpc.WithDialOption(grpc.WithBlock()))
 
-	//traceClientHttp := otlptracehttp.NewClient(
-	//	otlptracehttp.WithEndpoint("127.0.0.1:8080"),
-	//	otlptracehttp.WithURLPath("/adapt_xxxxx/api/otlp/traces"),
-	//	otlptracehttp.WithInsecure())
-	//otlptracehttp.WithCompression(1))
-
-	traceExp, err := otlptrace.New(ctx, traceClient)
+	traceExp, err := otlptrace.New(ctx, traceClientGrpc)
 	handleErr(err, "Failed to create the collector trace exporter")
 
 	res, err := resource.New(ctx,
@@ -74,8 +68,8 @@ func initProvider() func() {
 		resource.WithHost(),
 		resource.WithAttributes(
 			// the service name used to display traces in backends
-			semconv.ServiceNameKey.String(common.ClientServiceName),
-			semconv.HostNameKey.String(common.ClientServiceHostName),
+			semconv.ServiceNameKey.String(common.ClientGrpcExportServiceName),
+			semconv.HostNameKey.String(common.ClientGrpcExportServiceHostName),
 		),
 	)
 	handleErr(err, "failed to create resource")

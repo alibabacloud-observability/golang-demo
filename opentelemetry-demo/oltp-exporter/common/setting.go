@@ -12,5 +12,5 @@ const (
 
 const (
 	ServerServiceName     = "otlp-demo-server"
-	SercerServiceHostName = "server.host.name"
+	ServerServiceHostName = "server.host.name"
 )
